@@ -16,6 +16,7 @@
                     <button type="button" class="btn btn-success float-right btn-sm" ng-disabled="item.finished" data-ng-click="editSwitch(item)">Edit</button>
                     <button type="button" class="btn btn-danger float-right btn-sm" data-ng-click="delete(item.id)">Delete</button>
                     <input type="checkbox" data-ng-model="item.finished" data-ng-change="finishSwitch(item)"/>
+                    <span>{{item.id}}</span>
                     <span data-ng-hide="item.finished">{{item.description}}</span>
                     <span data-ng-show="item.finished"><del>{{item.description}}</del></span>
                 </div>

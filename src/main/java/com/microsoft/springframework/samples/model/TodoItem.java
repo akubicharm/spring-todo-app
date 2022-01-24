@@ -5,24 +5,32 @@
  */
 package com.microsoft.springframework.samples.model;
 
-import com.microsoft.azure.spring.data.cosmosdb.core.mapping.Document;
+import lombok.Data;
+
+import org.springframework.data.annotation.Id;
 
 import java.util.Objects;
 
-@Document
+
+@Data
 public class TodoItem {
-    private String id;
+    @Id
+    private Integer id;
     private String description;
-    private String owner;
+    private String title;
     private boolean finished;
 
     public TodoItem() {
     }
 
-    public TodoItem(String id, String description, String owner) {
+    public TodoItem(String title, String description) {
+        this(null, title, description);
+    }
+
+    public TodoItem(Integer id, String title, String description) {
         this.description = description;
         this.id = id;
-        this.owner = owner;
+        this.title = title;
         this.finished = false;
     }
 
@@ -30,7 +38,7 @@ public class TodoItem {
         return finished;
     }
 
-    public void setFinish(boolean finished) {
+    public void setFinish(final boolean finished) {
         this.finished = finished;
     }
 
@@ -38,28 +46,28 @@ public class TodoItem {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(final String description) {
         this.description = description;
     }
 
-    public String getOwner() {
-        return owner;
+    public String getTitle() {
+        return title;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
+    public void setTitle(final String title) {
+        this.title = title;
     }
 
-    public String getID() {
+    public Integer getId() {
         return id;
     }
 
-    public void setID(String id) {
+    public void setId(final Integer id) {
         this.id = id;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (o == this) {
             return true;
         }
@@ -68,20 +76,22 @@ public class TodoItem {
         }
         final TodoItem group = (TodoItem) o;
         return Objects.equals(this.getDescription(), group.getDescription())
-                && Objects.equals(this.getOwner(), group.getOwner())
-                && Objects.equals(this.getID(), group.getID());
+                && Objects.equals(this.getTitle(), group.getTitle())
+                && Objects.equals(this.getId(), group.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(description, id, owner);
+        return Objects.hash(description, id, title);
     }
 
     @Override
     public String toString() {
-        if (id != null)
-            return id + ": " + description;
-        else return description;
+        if (id != null) {
+            return id + ": " + title + ": " + description;
+        } else {
+            return title + ": " + description;
+        }
     }
 }
 

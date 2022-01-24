@@ -14,6 +14,7 @@ angular.module('todoApp')
         $scope.newTodoCaption = '';
 
         $scope.editInProgressTodo = {
+            title: '',
             description: '',
             id: 0,
             finish: false
@@ -30,6 +31,7 @@ angular.module('todoApp')
         $scope.editSwitch = function (todo) {
             todo.edit = !todo.edit;
             if (todo.edit) {
+                $scope.editInProgressTodo.title = todo.title;
                 $scope.editInProgressTodo.description = todo.description;
                 $scope.editInProgressTodo.id = todo.id;
                 $scope.editInProgressTodo.finished = todo.finished;

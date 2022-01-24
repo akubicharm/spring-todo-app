@@ -38,7 +38,7 @@ public class TodoListController {
      */
     @RequestMapping(value = "/api/todolist/{index}",
             method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> getTodoItem(@PathVariable("index") String index) {
+    public ResponseEntity<?> getTodoItem(@PathVariable("index") Integer index) {
         System.out.println(new Date() + " GET ======= /api/todolist/{" + index
                 + "} =======");
         try {
@@ -68,10 +68,11 @@ public class TodoListController {
     public ResponseEntity<String> addNewTodoItem(@RequestBody TodoItem item) {
         System.out.println(new Date() + " POST ======= /api/todolist ======= " + item);
         try {
-            item.setID(UUID.randomUUID().toString());
+            //item.setId(UUID.randomUUID().toString());
             todoItemRepository.save(item);
             return new ResponseEntity<String>("Entity created", HttpStatus.CREATED);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<String>("Entity creation failed", HttpStatus.CONFLICT);
         }
     }
@@ -83,10 +84,12 @@ public class TodoListController {
     public ResponseEntity<String> updateTodoItem(@RequestBody TodoItem item) {
         System.out.println(new Date() + " PUT ======= /api/todolist ======= " + item);
         try {
-            todoItemRepository.deleteById(item.getID());
+            //todoItemRepository.deleteById(item.getId());
+
             todoItemRepository.save(item);
             return new ResponseEntity<String>("Entity updated", HttpStatus.OK);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<String>("Entity updating failed", HttpStatus.NOT_FOUND);
         }
     }
@@ -95,7 +98,7 @@ public class TodoListController {
      * HTTP DELETE
      */
     @RequestMapping(value = "/api/todolist/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<String> deleteTodoItem(@PathVariable("id") String id) {
+    public ResponseEntity<String> deleteTodoItem(@PathVariable("id") Integer id) {
         System.out.println(new Date() + " DELETE ======= /api/todolist/{" + id
                 + "} ======= ");
         try {

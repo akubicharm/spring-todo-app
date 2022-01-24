@@ -6,9 +6,9 @@
 package com.microsoft.springframework.samples.dao;
 
 import com.microsoft.springframework.samples.model.TodoItem;
-import com.microsoft.azure.spring.data.cosmosdb.repository.DocumentDbRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jdbc.repository.query.Query;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
-@Repository
-public interface TodoItemRepository extends DocumentDbRepository<TodoItem, String> {
+public interface TodoItemRepository extends CrudRepository<TodoItem, Integer> {
 }
