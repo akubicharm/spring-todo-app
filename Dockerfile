@@ -17,9 +17,4 @@ COPY appinsights/* .
 # run application
 EXPOSE 8080
 
-ENV DB_PORT=5432 \
-    DB_USER="myadmin" \
-    DB_PASSWORD="@dmin12345678" \
-    DB_SERVER="pgflexakubicharm.postgres.database.azure.com" \
-    DB_NAME="todoapp"
 ENTRYPOINT ["java", "-javaagent:/applicationinsights-agent-3.0.3.jar", "-jar","/app.jar"]
