@@ -14,8 +14,8 @@ public class TodoItemTest {
     @Test
     public void testEqualsObject() {
         final TodoItem itemA = new TodoItem();
-        final TodoItem itemB1 = new TodoItem("B", "Item B", "Owner of Item B");
-        final TodoItem itemB2 = new TodoItem("B", "Item B", "Owner of Item B");
+        final TodoItem itemB1 = new TodoItem("B".hashCode(), "Item B", "Owner of Item B");
+        final TodoItem itemB2 = new TodoItem("B".hashCode(), "Item B", "Owner of Item B");
         final Object nonTodoItem = new Object();
         assertTrue(itemA.equals(itemA));
         assertFalse(itemA.equals(null));
