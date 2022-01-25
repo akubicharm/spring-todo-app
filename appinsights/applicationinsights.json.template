@@ -1,0 +1,20 @@
+{
+  "connectionString": "InstrumentationKey=XXXXXXXXXXXXXXXXXXXXXXXXXX;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/"
+  "jmxMetrics": [
+      {
+        "name": "Demo - Metaspace Used",
+        "objectName": "java.lang:type=MemoryPool,name=Metaspace",
+        "attribute": "Usage.used"
+      },
+      {
+        "name": "Demo - Metaspace committed",
+        "objectName": "java.lang:type=MemoryPool,name=Metaspace",
+        "attribute": "Usage.committed"
+      },
+      {
+        "name": "Demo - Metaspace max",
+        "objectName": "java.lang:type=MemoryPool,name=Metaspace",
+        "attribute": "Usage.max"
+      }
+   ]
+}
