@@ -1,12 +1,12 @@
 # builder - first stage to build the application
-FROM maven:3.5.4-jdk-11-slim AS build-env
+FROM maven:3-openjdk-17-slim AS build-env
 ADD ./pom.xml pom.xml
 RUN mvn dependency:go-offline
 ADD ./src src/
-RUN mvn clean package
+RUN mvn -e clean package
 
 # runtime - build final runtime image
-FROM openjdk:11-jre-slim
+FROM openjdk:17.0.2-slim
 
 #USER 1001
 

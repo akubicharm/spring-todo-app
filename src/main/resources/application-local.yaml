@@ -2,8 +2,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://postgresql:5432/postgres
-    username: 'USERNAME'
-    password: 'PASSWORD'
+    username: 'myadmin'
+    password: '@dmin12345678'
     hikari:
       connection-timeout:  3000 # Default: 30000(30 sec)
       connection-test-query: SELECT 1

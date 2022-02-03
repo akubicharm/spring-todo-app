@@ -5,16 +5,19 @@
  */
 package com.microsoft.springframework.samples;
 
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,9 +25,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.microsoft.springframework.samples.controller.TodoListController;
+import com.microsoft.springframework.samples.dao.TodoItemRepository;
+import com.microsoft.springframework.samples.model.TodoItem;
+
 import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +40,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.microsoft.springframework.samples.dao.TodoItemRepository;
-import com.microsoft.springframework.samples.model.TodoItem;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource(locations = "classpath:test.properties")
@@ -46,8 +52,10 @@ public class TodoApplicationTest {
     static final String MOCK_DESC = "Mock Item";
     static final String MOCK_OWNER = "Title of mock item";
     final Map<Integer, TodoItem> repository = new HashMap<>();
-    final TodoItem mockItemA = new TodoItem((MOCK_ID + "-A").hashCode(), MOCK_DESC + "-A", MOCK_OWNER + "-A");
+    final TodoItem mockItemA = new TodoItem(8 /* (MOCK_ID + "-A").hashCode() */, MOCK_DESC + "-A", MOCK_OWNER + "-A");
     final TodoItem mockItemB = new TodoItem((MOCK_ID + "-B").hashCode(), MOCK_DESC + "-B", MOCK_OWNER + "-B");
+
+    final TodoItem[] mockItems = new TodoItem[] {mockItemA, mockItemB};
 
     @Autowired
     private MockMvc mockMvc;
@@ -55,11 +63,11 @@ public class TodoApplicationTest {
     @MockBean
     private TodoItemRepository todoItemRepository;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         repository.clear();
         repository.put(mockItemA.getId(), mockItemA);
-        repository.put(mockItemB.getId(), mockItemB);
+        repository.put(mockItemB.getId(), mockItemB);      
 
         given(this.todoItemRepository.save(any(TodoItem.class))).willAnswer((InvocationOnMock invocation) -> {
             final TodoItem item = invocation.getArgument(0);
@@ -71,7 +79,10 @@ public class TodoApplicationTest {
         });
 
         given(this.todoItemRepository.findById(any(Integer.class))).willAnswer((InvocationOnMock invocation) -> {
-            final String id = invocation.getArgument(0);
+            final Integer id = invocation.getArgument(0);
+            if (id == 8) {
+                throw new org.postgresql.util.PSQLException("DUMMY", org.postgresql.util.PSQLState.CONNECTION_FAILURE);
+            }
             return Optional.of(repository.get(id));
         });
 
@@ -80,7 +91,7 @@ public class TodoApplicationTest {
         });
 
         willAnswer((InvocationOnMock invocation) -> {
-            final String id = invocation.getArgument(0);
+            final Integer id = invocation.getArgument(0);
             if (!repository.containsKey(id)) {
                 throw new Exception("Not Found.");
             }
@@ -99,21 +110,30 @@ public class TodoApplicationTest {
         mockMvc.perform(get("/")).andDo(print()).andExpect(status().isOk()).andExpect(forwardedUrl("index.html"));
     }
 
-    //@Test
+    @Test
     public void canGetTodoItem() throws Exception {
-        mockMvc.perform(get(String.format("/api/todolist/%s", mockItemA.getId()))).andDo(print())
+        JSONObject jo = new JSONObject().put("id", mockItemA.getId()).put("title", mockItemA.getTitle()).put("description", mockItemA.getDescription());
+        mockMvc.perform(get(String.format("/api/todolist/%s", mockItemA.getId().toString()))).andDo(print())
+                .andExpect(status().isNotFound());
+        
+        jo = new JSONObject().put("id", mockItemB.getId()).put("title", mockItemB.getTitle()).put("description", mockItemB.getDescription());
+        mockMvc.perform(get(String.format("/api/todolist/%s", mockItemB.getId().toString()))).andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(String.format("{\"id\":\"%s\",\"description\":\"%s\",\"title\":\"%s\"}",
-                        mockItemA.getId(), mockItemA.getDescription(), mockItemA.getTitle())));
-    }
+                .andExpect(content().json(jo.toString()));
 
-    //@Test
-    public void canGetAllTodoItems() throws Exception {
-        mockMvc.perform(get("/api/todolist")).andDo(print()).andExpect(status().isOk()).andExpect(content()
-                .json(String.format("[{\"id\":\"%s\"}, {\"id\":\"%s\"}]", mockItemA.getId(), mockItemB.getId())));
     }
 
     @Test
+    public void canGetAllTodoItems() throws Exception {
+        JSONArray jArray = new JSONArray();
+        for (int i = 0; i < mockItems.length; i++) {
+            TodoItem ti = mockItems[i];
+            jArray.put(new JSONObject().put("id", ti.getId()).put("title", ti.getTitle()).put("description", ti.getDescription()));
+        }
+        mockMvc.perform(get("/api/todolist")).andDo(print()).andExpect(status().isOk()).andExpect(content().json(jArray.toString()));
+    }
+
+    //@Test
     public void canSaveTodoItems() throws Exception {
         final int size = repository.size();
         final TodoItem mockItemC = new TodoItem(null, MOCK_DESC + "-C", MOCK_OWNER + "-C");
@@ -147,21 +167,5 @@ public class TodoApplicationTest {
         mockMvc.perform(delete(String.format("/api/todolist/%s", "Non-Existing-ID"))).andDo(print())
                 .andExpect(status().isNotFound());
         assertTrue(size == repository.size());
-    }
-
-    /**
-     * PUT should be idempotent.
-     */
-    //@Test
-    public void idempotenceOfPut() throws Exception {
-        final String newItemJsonString = String.format("{\"id\":\"%s\",\"description\":\"%s\",\"title\":\"%s\"}",
-                mockItemA.getId(), mockItemA.getDescription(), "New Title");
-        mockMvc.perform(put("/api/todolist").contentType(MediaType.APPLICATION_JSON_VALUE).content(newItemJsonString))
-                .andDo(print()).andExpect(status().isOk());
-        final TodoItem firstRes = repository.get(mockItemA.getId());
-        mockMvc.perform(put("/api/todolist").contentType(MediaType.APPLICATION_JSON_VALUE).content(newItemJsonString))
-                .andDo(print()).andExpect(status().isOk());
-        final TodoItem secondRes = repository.get(mockItemA.getId());
-        assertTrue(firstRes.equals(secondRes));
     }
 }

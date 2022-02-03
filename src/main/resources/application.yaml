@@ -1,6 +1,48 @@
 logging:
   level:
-    com.zaxxer.hikari: debug
+    com.zaxxer.hikari: error
 spring:
   profiles:
-    active: template
+    active: pgflex
+
+resilience4j.retry:
+    configs:
+        default:
+            maxAttempts: 3
+            waitDuration: 2s
+            enableExponentialBackoff: true
+            exponentialBackoffMultiplier: 2
+            retryExceptions:
+                - org.postgresql.util.PSQLException
+                - org.springframework.transaction.CannotCreateTransactionException
+            ignoreExceptions:
+                - java.io.IOException
+    instances:
+      getAllItems:
+        baseConfig: default
+
+
+resilience4j:
+  circuitbreaker:
+    circuitBreakerAspectOrder: 1
+  retry:
+    retryAspectOrder: 2
+resilience4j.circuitbreaker:
+    configs:
+        default:
+            registerHealthIndicator: true
+            slidingWindowSize: 10
+            minimumNumberOfCalls: 5
+            permittedNumberOfCallsInHalfOpenState: 3
+            automaticTransitionFromOpenToHalfOpenEnabled: true
+            waitDurationInOpenState: 5s
+            failureRateThreshold: 50
+            eventConsumerBufferSize: 10
+            recordExceptions:
+                - org.postgresql.util.PSQLException
+                - org.springframework.transaction.CannotCreateTransactionException
+            ignoreExceptions:
+    instances:
+      getAllItems:
+        baseConfig: default
+    
