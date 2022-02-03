@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springtodo
+  labels:
+    deploy: springtodo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: springtodo
+  template:
+    metadata:
+      labels:
+        app: springtodo
+    spec:
+      containers:
+        - name: springtodo
+          image: [YOUR CONTRAINER IMAGE]
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: springtodo
+spec:
+  type: ClusterIP
+  selector:
+    app: springtodo
+  ports:
+    - protocol: TCP
+      name: springtodo-http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: springtodo
+  annotations:
+    kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+  rules:
+  - host: [YOUR APP FQDN]
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service: 
+            name: springtodo
+            port:
+              number: 80
