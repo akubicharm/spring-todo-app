@@ -3,7 +3,7 @@
 SpringBootのシンプルなTodoListアプリケーションに、リトライやサーキットブレーカーを実装したデモアプリケーション。
 実際のアプリケーションでは、どのレイヤでリトライの実装をすべきかなどを要件にあわせて考慮する必要があるが、ここではシンプルにサービスクラスでリトライを実装している。
 
-##データベースの準備
+##　データベースの準備
 
 ### Postgresql
 ```
@@ -46,23 +46,15 @@ spring:
       maximum-pool-size: 5
 ```
 
-### JARの生成
-```
-mvn clean package
-```
-
-### Dockerイメージの作成
-マルチステージビルドを利用するようになっているので、docker buildのプロセスでアプリケーショのビルドとコンテナイメージを生成する。
-```
-docker build . -t [タグ]
-```
-
-### ローカルでの実行
+### JARの場合
 
 1. DBの接続プロパティを環境に合わせて編集  
 	- src/main/resources/application.yaml
 	- src/main/resources/application-XXX.yaml
-2. ビルド(JAR or コンテナイメージの生成)
+2. ビルド(JARの生成)
+```
+mvn clean package
+```
 3. 実行
 * JARでの実行(DBサーバの接続プロパティ、ユーザなどな環境に合わせて要変更)
 ```
@@ -74,11 +66,27 @@ export DB_NAME=todoapp
 
 java -jar target/spring-todo-app-2.0-SNAPSHOT.jar
 ```
-* Dockerでの実行
+
+### Dockerの場合
+
+1. DBの接続プロパティを環境に合わせて編集  
+	- src/main/resources/application.yaml
+	- src/main/resources/application-XXX.yaml
+
+2. ビルド（コンテナイメージの生成） 
+マルチステージビルドを利用するようになっているので、docker buildのプロセスでアプリケーショのビルドとコンテナイメージを生成する。
+```
+docker build . -t [タグ]
+```
+
+3. 実行
+
 ```
 docker run --rm -p 8080:8080 -e "DB_PORT=5432" -e "DB_USER=myadmin" -e "DB_PASSWORD=@pp12345678" -e "DB_SERVER=pgflex1qazxsw2.postgres.database.azure.com" -e "DB_NAME=todoapp" [コンテナイメージ名]
 ```
-4. クライアントからの接続
+
+
+## クライアントからの接続
 * アプリケーションは8080ポートでリクエストを待ち受けるのでブラウザから`localhost:8080`にアクセス
 * APIを直接利用する場合  
 Visual Studio CodeのRest Clientエクステンションを利用する場合には、以下のようなリクエストを送る
